@@ -1,0 +1,56 @@
+PERFORMANCE TUNING FOR ENTITY FRAME WORK
+-----------------------------------------
+
+
+1. dont add tolist() at the end of calling object which is hitting db.
+after getting the data from db add the tolist() at the end of object.
+
+2. while calling huge data from db use iquerable
+
+3. the IEnmerable is in memory, Iqueryable doesn't.
+
+4. example for iqurable and ienurable
+
+	IEnumerable Example :
+
+		MyDataContext dc = new MyDataContext ();
+IEnumerable<Employee> list = dc.Employees.Where(p => p.Name.StartsWith("S"));
+list = list.Take<Employee>(10);
+Generated SQL statements of above query will be : 
+
+ Collapse | Copy Code
+SELECT [t0].[EmpID], [t0].[EmpName], [t0].[Salary] FROM [Employee] AS [t0]
+WHERE [t0].[EmpName] LIKE @p0  
+
+	*Notice that in this query "top 10" is missing since IEnumerable filters records on client side.
+
+
+
+IQueryable Example:
+
+MyDataContext dc = new MyDataContext ();
+IQueryable<Employee> list = dc.Employees.Where(p => p.Name.StartsWith("S"));
+list = list.Take<Employee>(10);
+
+*Notice that in this query "top 10" is existing since IQueryable executes query in SQL server with all filters. 
+Generated SQL statements of above query will be :
+
+ Collapse | Copy Code
+SELECT TOP 10 [t0].[EmpID], [t0].[EmpName], [t0].[Salary] FROM [Employee] AS [t0]
+WHERE [t0].[EmpName] LIKE @p0
+
+
+reference http://www.codeproject.com/Tips/468215/Difference-Between-IEnumerable-and-IQueryable
+
+
+5. foreach 
+UpdateUserPrograms.ForEach(z => _userProgramDetailRepository.Update(z));
+
+multiple records will insert at once
+
+6. In simple words other major difference is that IEnumerable execute select query on server side, 
+load data in-memory on client side and then filter data
+ while IQueryable execute select query on server side with all filters
+
+		
+   
